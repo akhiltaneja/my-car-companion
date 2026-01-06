@@ -120,7 +120,16 @@
   .input-brutal {
     @apply w-full px-4 py-3 rounded-xl border-2 border-foreground bg-card 
            focus:outline-none focus:ring-2 focus:ring-primary
-           placeholder:text-muted-foreground font-medium;
+           placeholder:text-muted-foreground font-medium
+           appearance-none;
+    -webkit-appearance: none;
+    min-height: 48px;
+    line-height: 1.5;
+  }
+  
+  /* Fix date input alignment on iOS */
+  input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
   }
   
   .btn-primary {
