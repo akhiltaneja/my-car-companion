@@ -2,95 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-
+    /* Core pastel palette */
+    --mint: 158 60% 72%;
+    --mint-dark: 158 50% 40%;
+    --orange: 30 95% 65%;
+    --orange-dark: 25 80% 45%;
+    --lavender: 270 60% 75%;
+    --lavender-dark: 270 50% 50%;
+    --pink: 340 70% 70%;
+    --pink-dark: 340 60% 50%;
+    --yellow: 45 95% 70%;
+    --yellow-dark: 45 80% 45%;
+    
+    /* Stat card colors */
+    --stat-yellow: 48 100% 88%;
+    --stat-mint: 158 60% 88%;
+    --stat-lavender: 270 60% 90%;
+    --stat-peach: 25 100% 90%;
+    --stat-pink: 340 70% 90%;
+    
+    /* Base colors */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-
-    --radius: 0.5rem;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --popover-foreground: 0 0% 10%;
+    --primary: 158 60% 72%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 270 60% 75%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 45 95% 70%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 158 60% 72%;
+    --radius: 1rem;
+    
+    /* Expense type colors */
+    --fuel-bg: 158 60% 85%;
+    --insurance-bg: 270 60% 88%;
+    --service-bg: 45 95% 85%;
+    --toll-bg: 25 100% 88%;
+    --challan-bg: 340 70% 88%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 15%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 15%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 158 60% 72%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 270 60% 75%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 20%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 45 95% 70%;
+    --accent-foreground: 0 0% 10%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 30%;
+    --input: 0 0% 30%;
+    --ring: 158 60% 72%;
   }
 }
 
@@ -100,6 +84,78 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-nunito antialiased;
   }
+}
+
+@layer components {
+  .card-brutal {
+    @apply bg-card rounded-2xl border-[3px] border-foreground shadow-brutal;
+  }
+  
+  .shadow-brutal {
+    box-shadow: 4px 4px 0 0 hsl(var(--foreground));
+  }
+  
+  .shadow-brutal-sm {
+    box-shadow: 2px 2px 0 0 hsl(var(--foreground));
+  }
+  
+  .page-header {
+    @apply pt-12 pb-6 px-4 text-center;
+  }
+  
+  .page-title {
+    @apply text-3xl font-black text-foreground;
+  }
+  
+  .page-subtitle {
+    @apply text-sm font-medium text-foreground/70 mt-1;
+  }
+  
+  .stat-card {
+    @apply rounded-xl border-2 border-foreground p-3;
+  }
+  
+  .input-brutal {
+    @apply w-full px-4 py-3 rounded-xl border-2 border-foreground bg-card 
+           focus:outline-none focus:ring-2 focus:ring-primary
+           placeholder:text-muted-foreground font-medium;
+  }
+  
+  .btn-primary {
+    @apply w-full py-4 rounded-xl border-2 border-foreground bg-accent 
+           font-bold text-foreground shadow-brutal-sm
+           active:translate-x-[2px] active:translate-y-[2px] active:shadow-none
+           transition-all duration-100;
+  }
+  
+  .nav-item {
+    @apply flex flex-col items-center gap-1 px-4 py-2 rounded-2xl
+           transition-all duration-200;
+  }
+  
+  .nav-item-active {
+    @apply shadow-brutal-sm;
+  }
+}
+
+@layer utilities {
+  .bg-mint { background-color: hsl(var(--mint)); }
+  .bg-orange { background-color: hsl(var(--orange)); }
+  .bg-lavender { background-color: hsl(var(--lavender)); }
+  .bg-pink { background-color: hsl(var(--pink)); }
+  .bg-yellow { background-color: hsl(var(--yellow)); }
+  
+  .bg-stat-yellow { background-color: hsl(var(--stat-yellow)); }
+  .bg-stat-mint { background-color: hsl(var(--stat-mint)); }
+  .bg-stat-lavender { background-color: hsl(var(--stat-lavender)); }
+  .bg-stat-peach { background-color: hsl(var(--stat-peach)); }
+  .bg-stat-pink { background-color: hsl(var(--stat-pink)); }
+  
+  .bg-fuel { background-color: hsl(var(--fuel-bg)); }
+  .bg-insurance { background-color: hsl(var(--insurance-bg)); }
+  .bg-service { background-color: hsl(var(--service-bg)); }
+  .bg-toll { background-color: hsl(var(--toll-bg)); }
+  .bg-challan { background-color: hsl(var(--challan-bg)); }
 }
