@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
-import { Trash2, Fuel, Shield, Wrench, Car, AlertTriangle } from 'lucide-react';
-import { Expense, ExpenseType, EXPENSE_COLORS, EXPENSE_LABELS, FuelEntry } from '@/types';
+import { Fuel, Shield, Wrench, Car, AlertTriangle, X } from 'lucide-react';
+import { Expense, ExpenseType, EXPENSE_LABELS, FuelEntry } from '@/types';
 
 interface HistoryProps {
   expenses: Expense[];
@@ -15,84 +15,94 @@ const typeIcons: Record<ExpenseType, React.ComponentType<{ className?: string }>
   challan: AlertTriangle,
 };
 
+const typeBgColors: Record<ExpenseType, string> = {
+  fuel: 'bg-gradient-to-br from-emerald-100 to-teal-50 border-emerald-300',
+  insurance: 'bg-gradient-to-br from-blue-100 to-sky-50 border-blue-300',
+  service: 'bg-gradient-to-br from-amber-100 to-yellow-50 border-amber-300',
+  toll: 'bg-gradient-to-br from-violet-100 to-purple-50 border-violet-300',
+  challan: 'bg-gradient-to-br from-rose-100 to-red-50 border-rose-300',
+};
+
+const typeAccentColors: Record<ExpenseType, string> = {
+  fuel: 'bg-emerald-500',
+  insurance: 'bg-blue-500',
+  service: 'bg-amber-500',
+  toll: 'bg-violet-500',
+  challan: 'bg-rose-500',
+};
+
 export function History({ expenses, onDelete }: HistoryProps) {
   return (
-    <div className="min-h-screen bg-orange pb-24">
-      <div className="page-header">
-        <h1 className="page-title">History</h1>
-        <p className="page-subtitle">Your expense entries</p>
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-24">
+      <div className="pt-10 pb-6 px-5">
+        <h1 className="text-3xl font-black text-slate-800">History</h1>
+        <p className="text-sm text-slate-500 mt-1">All your expense entries</p>
       </div>
 
-      <div className="px-4 space-y-4">
+      <div className="px-4 space-y-3">
         {expenses.length === 0 ? (
-          <div className="card-brutal p-8 text-center">
-            <p className="text-muted-foreground font-medium">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-200">
+            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
+              <Fuel className="w-8 h-8 text-slate-400" />
+            </div>
+            <p className="text-slate-500 font-medium">
               No entries yet. Start tracking your expenses!
             </p>
           </div>
         ) : (
           expenses.map((expense) => {
             const Icon = typeIcons[expense.type];
-            const bgColor = EXPENSE_COLORS[expense.type];
             const isFuel = expense.type === 'fuel';
 
             return (
               <div
                 key={expense.id}
-                className={`card-brutal overflow-hidden animate-slide-up`}
+                className={`relative rounded-2xl overflow-hidden border-2 shadow-sm hover:shadow-md transition-shadow ${typeBgColors[expense.type]}`}
               >
-                <div className={`${bgColor} px-4 py-2 flex items-center gap-2`}>
-                  <Icon className="w-4 h-4" />
-                  <span className="font-bold text-sm">{EXPENSE_LABELS[expense.type]}</span>
-                </div>
+                {/* Accent bar */}
+                <div className={`absolute left-0 top-0 bottom-0 w-1.5 ${typeAccentColors[expense.type]}`} />
                 
-                <div className="p-4">
+                <div className="p-4 pl-5">
                   <div className="flex justify-between items-start mb-3">
-                    <span className="font-black text-lg">
-                      {format(new Date(expense.date), 'd MMM yyyy')}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <div className={`p-2 rounded-xl ${typeAccentColors[expense.type]} text-white`}>
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <span className="font-bold text-sm text-slate-700">{EXPENSE_LABELS[expense.type]}</span>
+                        <p className="text-xs text-slate-500">{format(new Date(expense.date), 'd MMM yyyy')}</p>
+                      </div>
+                    </div>
                     <button
                       onClick={() => onDelete(expense.id)}
-                      className="px-3 py-1 rounded-lg border-2 border-foreground text-sm font-bold
-                               hover:bg-destructive hover:text-destructive-foreground transition-colors"
+                      className="p-2 rounded-full hover:bg-white/50 transition-colors text-slate-400 hover:text-rose-500"
                     >
-                      Delete
+                      <X className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Odometer</span>
-                      <span className="font-bold">{expense.odometer.toLocaleString()} km</span>
+                  <div className="flex items-end justify-between">
+                    <div className="space-y-1 text-xs text-slate-600">
+                      <p><span className="text-slate-400">Odometer:</span> {expense.odometer.toLocaleString()} km</p>
+                      {isFuel && (
+                        <p>
+                          <span className="text-slate-400">Fuel:</span> {(expense as FuelEntry).liters.toFixed(1)} L @ ₹{(expense as FuelEntry).pricePerLiter.toFixed(2)}/L
+                        </p>
+                      )}
+                      {!isFuel && 'description' in expense && expense.description && (
+                        <p><span className="text-slate-400">Note:</span> {expense.description}</p>
+                      )}
                     </div>
-
-                    {isFuel && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Fuel</span>
-                        <span className="font-bold">
-                          {(expense as FuelEntry).liters.toFixed(1)} L @ ₹{(expense as FuelEntry).pricePerLiter.toFixed(2)}/L
-                        </span>
-                      </div>
-                    )}
-
-                    {!isFuel && 'description' in expense && expense.description && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Description</span>
-                        <span className="font-bold">{expense.description}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between pt-2 border-t border-foreground/10">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="font-black text-lg">₹{expense.totalCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-slate-800">₹{expense.totalCost.toLocaleString('en-IN')}</p>
                     </div>
-
-                    {expense.notes && (
-                      <div className="pt-2 text-muted-foreground italic">
-                        "{expense.notes}"
-                      </div>
-                    )}
                   </div>
+
+                  {expense.notes && (
+                    <p className="mt-2 text-xs text-slate-500 italic bg-white/50 rounded-lg px-3 py-2">
+                      "{expense.notes}"
+                    </p>
+                  )}
                 </div>
               </div>
             );
