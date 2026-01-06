@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { Camera, Download, FileJson, FileSpreadsheet } from 'lucide-react';
+import { Camera, User, Car, CalendarDays } from 'lucide-react';
 import { UserProfile, CAR_BRANDS } from '@/types';
 
 interface SettingsProps {
@@ -18,7 +18,7 @@ const months = [
 const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
-export function Settings({ profile, expenseCount, onUpdateProfile, onExportJSON, onExportCSV }: SettingsProps) {
+export function Settings({ profile, expenseCount, onUpdateProfile }: SettingsProps) {
   const [name, setName] = useState(profile.name);
   const [carBrand, setCarBrand] = useState(profile.carBrand);
   const [carName, setCarName] = useState(profile.carName);
@@ -51,29 +51,26 @@ export function Settings({ profile, expenseCount, onUpdateProfile, onExportJSON,
   };
 
   return (
-    <div className="min-h-screen bg-pink pb-24">
-      <div className="page-header">
-        <h1 className="page-title">Settings</h1>
-        <p className="page-subtitle">Manage your data</p>
+    <div className="min-h-screen bg-gradient-to-b from-amber-50 to-orange-50 pb-24">
+      <div className="pt-10 pb-6 px-5">
+        <h1 className="text-3xl font-black text-slate-800">Settings</h1>
+        <p className="text-sm text-slate-500 mt-1">Manage your profile</p>
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Profile Section */}
-        <div className="card-brutal p-5 animate-slide-up">
-          <h3 className="font-bold mb-4">Your Profile</h3>
-          
-          {/* Profile Picture */}
-          <div className="flex justify-center mb-4">
+        {/* Profile Picture Card */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-amber-100">
+          <div className="flex flex-col items-center">
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="relative w-24 h-24 rounded-full border-3 border-foreground overflow-hidden
-                       bg-stat-lavender hover:opacity-80 transition-opacity"
+              className="relative w-28 h-28 rounded-full overflow-hidden border-4 border-amber-200 
+                       bg-gradient-to-br from-amber-100 to-orange-100 hover:border-amber-300 transition-colors"
             >
               {profilePic ? (
                 <img src={profilePic} alt="Profile" className="w-full h-full object-cover" />
               ) : (
                 <div className="flex items-center justify-center w-full h-full">
-                  <Camera className="w-8 h-8 text-muted-foreground" />
+                  <Camera className="w-10 h-10 text-amber-400" />
                 </div>
               )}
               <input
@@ -84,32 +81,57 @@ export function Settings({ profile, expenseCount, onUpdateProfile, onExportJSON,
                 className="hidden"
               />
             </button>
+            <p className="text-xs text-slate-400 mt-3">Tap to change photo</p>
           </div>
+        </div>
 
+        {/* User Details */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+              <User className="w-4 h-4 text-amber-600" />
+            </div>
+            <h3 className="font-bold text-slate-800">Personal Info</h3>
+          </div>
+          
           <div className="space-y-4">
-            {/* Name */}
             <div>
-              <label className="block text-sm font-bold mb-2">Your Name</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Your Name</label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 onBlur={handleSave}
                 placeholder="Enter your name"
-                className="input-brutal"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 
+                         focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300
+                         text-sm font-medium placeholder:text-slate-400"
               />
             </div>
+          </div>
+        </div>
 
-            {/* Car Brand */}
+        {/* Car Details */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <Car className="w-4 h-4 text-orange-600" />
+            </div>
+            <h3 className="font-bold text-slate-800">Vehicle Info</h3>
+          </div>
+          
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-bold mb-2">Car Brand</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Car Brand</label>
               <select
                 value={carBrand}
                 onChange={(e) => {
                   setCarBrand(e.target.value);
                   onUpdateProfile({ carBrand: e.target.value });
                 }}
-                className="input-brutal"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 
+                         focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300
+                         text-sm font-medium"
               >
                 <option value="">Select brand</option>
                 {CAR_BRANDS.map(brand => (
@@ -118,120 +140,68 @@ export function Settings({ profile, expenseCount, onUpdateProfile, onExportJSON,
               </select>
             </div>
 
-            {/* Car Name */}
             <div>
-              <label className="block text-sm font-bold mb-2">Car Model/Name</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">Car Model</label>
               <input
                 type="text"
                 value={carName}
                 onChange={(e) => setCarName(e.target.value)}
                 onBlur={handleSave}
                 placeholder="e.g., Swift Dzire"
-                className="input-brutal"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 
+                         focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300
+                         text-sm font-medium placeholder:text-slate-400"
               />
             </div>
+          </div>
+        </div>
 
-            {/* Purchase Date */}
-            <div>
-              <label className="block text-sm font-bold mb-2">Purchase Date</label>
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={purchaseMonth}
-                  onChange={(e) => {
-                    setPurchaseMonth(parseInt(e.target.value));
-                    onUpdateProfile({ purchaseMonth: parseInt(e.target.value) });
-                  }}
-                  className="input-brutal"
-                >
-                  {months.map((month, i) => (
-                    <option key={month} value={i + 1}>{month}</option>
-                  ))}
-                </select>
-                <select
-                  value={purchaseYear}
-                  onChange={(e) => {
-                    setPurchaseYear(parseInt(e.target.value));
-                    onUpdateProfile({ purchaseYear: parseInt(e.target.value) });
-                  }}
-                  className="input-brutal"
-                >
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
-              </div>
+        {/* Purchase Date */}
+        <div className="bg-white rounded-2xl p-5 shadow-sm border border-amber-100">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 bg-rose-100 rounded-lg flex items-center justify-center">
+              <CalendarDays className="w-4 h-4 text-rose-600" />
             </div>
+            <h3 className="font-bold text-slate-800">Purchase Date</h3>
           </div>
-        </div>
-
-        {/* Your Data */}
-        <div className="card-brutal p-5 animate-slide-up">
-          <h3 className="font-bold mb-4">Your Data</h3>
-          <div className="stat-card bg-stat-yellow text-center py-6">
-            <p className="text-4xl font-black">{expenseCount}</p>
-            <p className="text-sm font-medium text-muted-foreground">entries stored locally</p>
-          </div>
-        </div>
-
-        {/* Export Data */}
-        <div className="card-brutal p-5 animate-slide-up">
-          <h3 className="font-bold mb-2">Export Data</h3>
-          <p className="text-sm text-muted-foreground mb-4">Download your data for backup</p>
           
-          <div className="space-y-3">
-            <button
-              onClick={onExportJSON}
-              className="w-full flex items-center justify-between p-4 rounded-xl 
-                       border-2 border-foreground bg-stat-lavender
-                       hover:shadow-brutal-sm transition-all"
+          <div className="grid grid-cols-2 gap-3">
+            <select
+              value={purchaseMonth}
+              onChange={(e) => {
+                setPurchaseMonth(parseInt(e.target.value));
+                onUpdateProfile({ purchaseMonth: parseInt(e.target.value) });
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 
+                       focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300
+                       text-sm font-medium"
             >
-              <div className="flex items-center gap-3">
-                <FileJson className="w-5 h-5" />
-                <span className="font-bold">Export as JSON</span>
-              </div>
-              <span className="text-sm font-medium px-3 py-1 bg-card rounded-full border border-foreground">
-                Full Backup
-              </span>
-            </button>
-
-            <button
-              onClick={onExportCSV}
-              className="w-full flex items-center justify-between p-4 rounded-xl 
-                       border-2 border-foreground bg-stat-mint
-                       hover:shadow-brutal-sm transition-all"
+              {months.map((month, i) => (
+                <option key={month} value={i + 1}>{month}</option>
+              ))}
+            </select>
+            <select
+              value={purchaseYear}
+              onChange={(e) => {
+                setPurchaseYear(parseInt(e.target.value));
+                onUpdateProfile({ purchaseYear: parseInt(e.target.value) });
+              }}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50 
+                       focus:outline-none focus:ring-2 focus:ring-amber-200 focus:border-amber-300
+                       text-sm font-medium"
             >
-              <div className="flex items-center gap-3">
-                <FileSpreadsheet className="w-5 h-5" />
-                <span className="font-bold">Export as CSV</span>
-              </div>
-              <span className="text-sm font-medium px-3 py-1 bg-card rounded-full border border-foreground">
-                Spreadsheet
-              </span>
-            </button>
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        {/* About */}
-        <div className="card-brutal p-5 animate-slide-up">
-          <h3 className="font-bold mb-4">About</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">App</span>
-              <span className="font-bold">Mileage Mate</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Version</span>
-              <span className="px-2 py-0.5 bg-stat-peach rounded-full font-bold border border-foreground">
-                v1.0.0
-              </span>
-            </div>
-            <div className="pt-3 border-t border-foreground/10">
-              <p className="text-muted-foreground">
-                A simple fuel tracking app for your vehicle.
-                Data is stored locally and works offline.
-              </p>
-            </div>
-          </div>
+        {/* Stats */}
+        <div className="bg-gradient-to-br from-amber-400 to-orange-400 rounded-2xl p-5 text-white">
+          <p className="text-sm font-medium opacity-90">Total Entries</p>
+          <p className="text-4xl font-black mt-1">{expenseCount}</p>
+          <p className="text-xs opacity-75 mt-1">Stored locally on your device</p>
         </div>
       </div>
     </div>
