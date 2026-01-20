@@ -1,29 +1,41 @@
 import { useState } from 'react';
-import { useAppData } from '@/hooks/useAppData';
+import { useAuth } from '@/hooks/useAuth';
+import { useExpenses } from '@/hooks/useExpenses';
+import { useProfile } from '@/hooks/useProfile';
 import { BottomNav } from '@/components/BottomNav';
+import { Dashboard } from '@/components/Dashboard';
 import { AddExpense } from '@/components/AddExpense';
 import { History } from '@/components/History';
 import { Insights } from '@/components/Insights';
 import { Settings } from '@/components/Settings';
+import { Navigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 
-type Tab = 'add' | 'history' | 'insights' | 'settings';
+type Tab = 'dashboard' | 'add' | 'history' | 'insights' | 'settings';
 
 const Index = () => {
-  const [activeTab, setActiveTab] = useState<Tab>('add');
-  const {
-    data,
-    isLoaded,
-    addExpense,
-    deleteExpense,
-    updateProfile,
-    getLastOdometer,
-    exportAsJSON,
-    exportAsCSV,
-  } = useAppData();
+  const { user, loading: authLoading } = useAuth();
+  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const { expenses, loading: expensesLoading, addExpense, deleteExpense, getLastOdometer } = useExpenses();
+  const { profile, loading: profileLoading, updateProfile } = useProfile();
 
-  if (!isLoaded) {
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-mint flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-mint/40 to-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  const isLoading = expensesLoading || profileLoading;
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-mint/40 to-background flex items-center justify-center">
         <div className="text-center">
           <h1 className="text-3xl font-black mb-2">Mileage Mate</h1>
           <p className="text-muted-foreground">Loading...</p>
@@ -32,28 +44,33 @@ const Index = () => {
     );
   }
 
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+  };
+
   return (
     <div className="max-w-lg mx-auto">
+      {activeTab === 'dashboard' && (
+        <Dashboard expenses={expenses} profile={profile} />
+      )}
       {activeTab === 'add' && (
         <AddExpense lastOdometer={getLastOdometer()} onAdd={addExpense} />
       )}
       {activeTab === 'history' && (
-        <History expenses={data.expenses} onDelete={deleteExpense} />
+        <History expenses={expenses} onDelete={(id) => deleteExpense(id)} />
       )}
       {activeTab === 'insights' && (
-        <Insights expenses={data.expenses} />
+        <Insights expenses={expenses} />
       )}
       {activeTab === 'settings' && (
         <Settings
-          profile={data.profile}
-          expenseCount={data.expenses.length}
+          profile={profile}
+          expenseCount={expenses.length}
           onUpdateProfile={updateProfile}
-          onExportJSON={exportAsJSON}
-          onExportCSV={exportAsCSV}
         />
       )}
       
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 };

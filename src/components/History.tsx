@@ -1,6 +1,6 @@
 import { format } from 'date-fns';
 import { Fuel, Shield, Wrench, Car, AlertTriangle, X } from 'lucide-react';
-import { Expense, ExpenseType, EXPENSE_LABELS, FuelEntry } from '@/types';
+import { Expense, ExpenseType, EXPENSE_LABELS, FuelExpense, InsuranceExpense, TollExpense } from '@/types';
 
 interface HistoryProps {
   expenses: Expense[];
@@ -16,11 +16,11 @@ const typeIcons: Record<ExpenseType, React.ComponentType<{ className?: string }>
 };
 
 const typeBgColors: Record<ExpenseType, string> = {
-  fuel: 'bg-gradient-to-br from-emerald-100 to-teal-50 border-emerald-300',
+  fuel: 'bg-gradient-to-br from-mint/60 to-emerald-50 border-emerald-300',
   insurance: 'bg-gradient-to-br from-blue-100 to-sky-50 border-blue-300',
-  service: 'bg-gradient-to-br from-amber-100 to-yellow-50 border-amber-300',
-  toll: 'bg-gradient-to-br from-violet-100 to-purple-50 border-violet-300',
-  challan: 'bg-gradient-to-br from-rose-100 to-red-50 border-rose-300',
+  service: 'bg-gradient-to-br from-orange/60 to-amber-50 border-amber-300',
+  toll: 'bg-gradient-to-br from-lavender/60 to-purple-50 border-violet-300',
+  challan: 'bg-gradient-to-br from-pink/60 to-rose-50 border-rose-300',
 };
 
 const typeAccentColors: Record<ExpenseType, string> = {
@@ -33,19 +33,19 @@ const typeAccentColors: Record<ExpenseType, string> = {
 
 export function History({ expenses, onDelete }: HistoryProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100 pb-24">
+    <div className="min-h-screen bg-gradient-to-b from-mint/30 to-background pb-24">
       <div className="pt-10 pb-6 px-5">
-        <h1 className="text-3xl font-black text-slate-800">History</h1>
-        <p className="text-sm text-slate-500 mt-1">All your expense entries</p>
+        <h1 className="text-3xl font-black text-foreground">History</h1>
+        <p className="text-sm text-muted-foreground mt-1">All your expense entries</p>
       </div>
 
       <div className="px-4 space-y-3">
         {expenses.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-slate-200">
-            <div className="w-16 h-16 mx-auto mb-4 bg-slate-100 rounded-full flex items-center justify-center">
-              <Fuel className="w-8 h-8 text-slate-400" />
+          <div className="bg-card rounded-2xl p-8 text-center shadow-sm border-2 border-border">
+            <div className="w-16 h-16 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <Fuel className="w-8 h-8 text-muted-foreground" />
             </div>
-            <p className="text-slate-500 font-medium">
+            <p className="text-muted-foreground font-medium">
               No entries yet. Start tracking your expenses!
             </p>
           </div>
@@ -53,6 +53,8 @@ export function History({ expenses, onDelete }: HistoryProps) {
           expenses.map((expense) => {
             const Icon = typeIcons[expense.type];
             const isFuel = expense.type === 'fuel';
+            const isInsurance = expense.type === 'insurance';
+            const isToll = expense.type === 'toll';
 
             return (
               <div
@@ -69,37 +71,43 @@ export function History({ expenses, onDelete }: HistoryProps) {
                         <Icon className="w-4 h-4" />
                       </div>
                       <div>
-                        <span className="font-bold text-sm text-slate-700">{EXPENSE_LABELS[expense.type]}</span>
-                        <p className="text-xs text-slate-500">{format(new Date(expense.date), 'd MMM yyyy')}</p>
+                        <span className="font-bold text-sm text-foreground">{EXPENSE_LABELS[expense.type]}</span>
+                        <p className="text-xs text-muted-foreground">{format(new Date(expense.date), 'd MMM yyyy')}</p>
                       </div>
                     </div>
                     <button
                       onClick={() => onDelete(expense.id)}
-                      className="p-2 rounded-full hover:bg-white/50 transition-colors text-slate-400 hover:text-rose-500"
+                      className="p-2 rounded-full hover:bg-white/50 transition-colors text-muted-foreground hover:text-rose-500"
                     >
                       <X className="w-4 h-4" />
                     </button>
                   </div>
 
                   <div className="flex items-end justify-between">
-                    <div className="space-y-1 text-xs text-slate-600">
-                      <p><span className="text-slate-400">Odometer:</span> {expense.odometer.toLocaleString()} km</p>
+                    <div className="space-y-1 text-xs text-foreground/80">
+                      <p><span className="text-muted-foreground">Odometer:</span> {expense.odometer.toLocaleString()} km</p>
                       {isFuel && (
                         <p>
-                          <span className="text-slate-400">Fuel:</span> {(expense as FuelEntry).liters.toFixed(1)} L @ ₹{(expense as FuelEntry).pricePerLiter.toFixed(2)}/L
+                          <span className="text-muted-foreground">Fuel:</span> {(expense as FuelExpense).liters.toFixed(1)} L @ ₹{(expense as FuelExpense).price_per_liter.toFixed(2)}/L
                         </p>
                       )}
-                      {!isFuel && 'description' in expense && expense.description && (
-                        <p><span className="text-slate-400">Note:</span> {expense.description}</p>
+                      {isInsurance && (expense as InsuranceExpense).provider_name && (
+                        <p><span className="text-muted-foreground">Provider:</span> {(expense as InsuranceExpense).provider_name}</p>
+                      )}
+                      {isToll && (expense as TollExpense).location && (
+                        <p><span className="text-muted-foreground">Location:</span> {(expense as TollExpense).location}</p>
+                      )}
+                      {!isFuel && !isInsurance && !isToll && 'description' in expense && expense.description && (
+                        <p><span className="text-muted-foreground">Note:</span> {expense.description}</p>
                       )}
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-black text-slate-800">₹{expense.totalCost.toLocaleString('en-IN')}</p>
+                      <p className="text-2xl font-black text-foreground">₹{expense.total_cost.toLocaleString('en-IN')}</p>
                     </div>
                   </div>
 
                   {expense.notes && (
-                    <p className="mt-2 text-xs text-slate-500 italic bg-white/50 rounded-lg px-3 py-2">
+                    <p className="mt-2 text-xs text-muted-foreground italic bg-white/50 rounded-lg px-3 py-2">
                       "{expense.notes}"
                     </p>
                   )}

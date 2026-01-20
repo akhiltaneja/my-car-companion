@@ -14,16 +14,105 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          created_at: string | null
+          date: string
+          description: string | null
+          id: string
+          liters: number | null
+          location: string | null
+          notes: string | null
+          odometer: number
+          price_per_liter: number | null
+          provider_name: string | null
+          start_date: string | null
+          total_cost: number
+          type: Database["public"]["Enums"]["expense_type"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          date: string
+          description?: string | null
+          id?: string
+          liters?: number | null
+          location?: string | null
+          notes?: string | null
+          odometer: number
+          price_per_liter?: number | null
+          provider_name?: string | null
+          start_date?: string | null
+          total_cost: number
+          type: Database["public"]["Enums"]["expense_type"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          description?: string | null
+          id?: string
+          liters?: number | null
+          location?: string | null
+          notes?: string | null
+          odometer?: number
+          price_per_liter?: number | null
+          provider_name?: string | null
+          start_date?: string | null
+          total_cost?: number
+          type?: Database["public"]["Enums"]["expense_type"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          car_brand: string | null
+          car_name: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          name: string | null
+          profile_picture_url: string | null
+          purchase_month: number | null
+          purchase_year: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          car_brand?: string | null
+          car_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id: string
+          name?: string | null
+          profile_picture_url?: string | null
+          purchase_month?: number | null
+          purchase_year?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          car_brand?: string | null
+          car_name?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          name?: string | null
+          profile_picture_url?: string | null
+          purchase_month?: number | null
+          purchase_year?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_owner: { Args: { p_user_id: string }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      expense_type: "fuel" | "insurance" | "service" | "toll" | "challan"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +239,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      expense_type: ["fuel", "insurance", "service", "toll", "challan"],
+    },
   },
 } as const

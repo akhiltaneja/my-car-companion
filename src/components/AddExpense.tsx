@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
-import { Fuel, Shield, Wrench, Car, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { ExpenseType, FuelEntry, OtherExpense, EXPENSE_LABELS } from '@/types';
+import { Fuel, Shield, Wrench, Car, AlertTriangle, CheckCircle2, MapPin, Building2 } from 'lucide-react';
+import { ExpenseType, EXPENSE_LABELS, INSURANCE_PROVIDERS } from '@/types';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 
 interface AddExpenseProps {
   lastOdometer: number;
-  onAdd: (expense: FuelEntry | OtherExpense) => void;
+  onAdd: (expense: any) => Promise<{ error: Error | null }>;
 }
 
 const expenseTypes = [
@@ -27,6 +27,10 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
+  const [providerName, setProviderName] = useState('');
+  const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [location, setLocation] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalCost = useMemo(() => {
     if (activeType === 'fuel') {
@@ -44,53 +48,77 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
     setAmount('');
     setDescription('');
     setNotes('');
+    setProviderName('');
+    setStartDate(format(new Date(), 'yyyy-MM-dd'));
+    setLocation('');
     setDate(format(new Date(), 'yyyy-MM-dd'));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
     const baseExpense = {
-      id: crypto.randomUUID(),
+      type: activeType,
       date,
       odometer: parseInt(odometer) || lastOdometer,
       notes: notes || undefined,
-      createdAt: new Date().toISOString(),
     };
 
+    let expense: any = baseExpense;
+
     if (activeType === 'fuel') {
-      const fuelEntry: FuelEntry = {
+      expense = {
         ...baseExpense,
-        type: 'fuel',
-        pricePerLiter: parseFloat(pricePerLiter) || 0,
+        price_per_liter: parseFloat(pricePerLiter) || 0,
         liters: parseFloat(liters) || 0,
-        totalCost,
+        total_cost: totalCost,
       };
-      onAdd(fuelEntry);
-    } else {
-      const expense: OtherExpense = {
+    } else if (activeType === 'insurance') {
+      expense = {
         ...baseExpense,
-        type: activeType,
-        totalCost: parseFloat(amount) || 0,
-        description: description || EXPENSE_LABELS[activeType],
+        provider_name: providerName,
+        start_date: startDate,
+        total_cost: parseFloat(amount) || 0,
       };
-      onAdd(expense);
+    } else if (activeType === 'toll') {
+      expense = {
+        ...baseExpense,
+        location: location,
+        total_cost: parseFloat(amount) || 0,
+      };
+    } else {
+      expense = {
+        ...baseExpense,
+        description: description || EXPENSE_LABELS[activeType],
+        total_cost: parseFloat(amount) || 0,
+      };
     }
 
-    resetForm();
-    
-    toast({
-      title: "Entry Saved!",
-      description: `${EXPENSE_LABELS[activeType]} entry added successfully.`,
-      duration: 3000,
-    });
+    const { error } = await onAdd(expense);
+    setIsSubmitting(false);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      resetForm();
+      toast({
+        title: "Entry Saved!",
+        description: `${EXPENSE_LABELS[activeType]} entry added successfully.`,
+        duration: 3000,
+      });
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-mint/40 to-background pb-24">
       {/* Header */}
       <div className="pt-10 pb-4 px-5">
-        <h1 className="text-2xl font-black text-foreground">Mileage Mate</h1>
+        <h1 className="text-2xl font-black text-foreground">Add Expense</h1>
         <p className="text-sm text-muted-foreground mt-0.5">Track your vehicle expenses</p>
       </div>
 
@@ -151,7 +179,7 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
               </div>
             </div>
 
-            {activeType === 'fuel' ? (
+            {activeType === 'fuel' && (
               <>
                 {/* Price & Liters Row */}
                 <div className="grid grid-cols-2 gap-3">
@@ -187,7 +215,87 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
                   </p>
                 </div>
               </>
-            ) : (
+            )}
+
+            {activeType === 'insurance' && (
+              <>
+                {/* Insurance Provider */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Insurance Provider</label>
+                  <div className="relative">
+                    <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <select
+                      value={providerName}
+                      onChange={(e) => setProviderName(e.target.value)}
+                      className="input-brutal text-sm h-12 pl-10"
+                    >
+                      <option value="">Select provider</option>
+                      {INSURANCE_PROVIDERS.map(provider => (
+                        <option key={provider} value={provider}>{provider}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Start Date */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Policy Start Date</label>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="input-brutal text-sm h-12"
+                  />
+                </div>
+
+                {/* Premium Amount */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Premium Amount (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter premium amount"
+                    className="input-brutal text-sm h-12"
+                  />
+                </div>
+              </>
+            )}
+
+            {activeType === 'toll' && (
+              <>
+                {/* Location */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Location</label>
+                  <div className="relative">
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                      placeholder="e.g., Mumbai-Pune Expressway"
+                      className="input-brutal text-sm h-12 pl-10"
+                    />
+                  </div>
+                </div>
+
+                {/* Amount */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Amount (₹)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="Enter toll amount"
+                    className="input-brutal text-sm h-12"
+                  />
+                </div>
+              </>
+            )}
+
+            {(activeType === 'service' || activeType === 'challan') && (
               <>
                 {/* Amount */}
                 <div>
@@ -209,7 +317,7 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
                     type="text"
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder={`e.g., ${EXPENSE_LABELS[activeType]} payment`}
+                    placeholder={`e.g., ${EXPENSE_LABELS[activeType]} details`}
                     className="input-brutal text-sm h-12"
                   />
                 </div>
@@ -223,14 +331,18 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
                 type="text"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="e.g., Shell petrol pump"
+                placeholder="Any additional notes..."
                 className="input-brutal text-sm h-12"
               />
             </div>
 
-            <button type="submit" className="btn-primary mt-4 flex items-center justify-center gap-2">
+            <button 
+              type="submit" 
+              className="btn-primary mt-4 flex items-center justify-center gap-2"
+              disabled={isSubmitting}
+            >
               <CheckCircle2 className="w-5 h-5" />
-              Save Entry
+              {isSubmitting ? 'Saving...' : 'Save Entry'}
             </button>
           </div>
         </form>
