@@ -1,42 +1,54 @@
 export type ExpenseType = 'fuel' | 'insurance' | 'service' | 'toll' | 'challan';
 
-export interface FuelEntry {
+export interface BaseExpense {
   id: string;
+  user_id: string;
+  type: ExpenseType;
+  date: string;
+  odometer: number;
+  total_cost: number;
+  notes?: string;
+  created_at: string;
+}
+
+export interface FuelExpense extends BaseExpense {
   type: 'fuel';
-  date: string;
-  odometer: number;
-  pricePerLiter: number;
+  price_per_liter: number;
   liters: number;
-  totalCost: number;
-  notes?: string;
-  createdAt: string;
 }
 
-export interface OtherExpense {
-  id: string;
-  type: Exclude<ExpenseType, 'fuel'>;
-  date: string;
-  odometer: number;
-  totalCost: number;
+export interface InsuranceExpense extends BaseExpense {
+  type: 'insurance';
+  provider_name: string;
+  start_date: string;
+}
+
+export interface TollExpense extends BaseExpense {
+  type: 'toll';
+  location: string;
+}
+
+export interface ServiceExpense extends BaseExpense {
+  type: 'service';
   description: string;
-  notes?: string;
-  createdAt: string;
 }
 
-export type Expense = FuelEntry | OtherExpense;
+export interface ChallanExpense extends BaseExpense {
+  type: 'challan';
+  description: string;
+}
+
+export type Expense = FuelExpense | InsuranceExpense | TollExpense | ServiceExpense | ChallanExpense;
 
 export interface UserProfile {
+  id: string;
   name: string;
-  profilePicture?: string;
-  carBrand: string;
-  carName: string;
-  purchaseMonth: number;
-  purchaseYear: number;
-}
-
-export interface AppData {
-  expenses: Expense[];
-  profile: UserProfile;
+  email: string;
+  profile_picture_url?: string;
+  car_brand: string;
+  car_name: string;
+  purchase_month: number;
+  purchase_year: number;
 }
 
 export const CAR_BRANDS = [
@@ -66,6 +78,31 @@ export const CAR_BRANDS = [
   'Citroen',
   'Isuzu',
   'Force',
+  'Other'
+];
+
+export const INSURANCE_PROVIDERS = [
+  'ICICI Lombard',
+  'HDFC Ergo',
+  'Bajaj Allianz',
+  'New India Assurance',
+  'United India Insurance',
+  'National Insurance',
+  'Oriental Insurance',
+  'Tata AIG',
+  'SBI General',
+  'Reliance General',
+  'Bharti AXA',
+  'Cholamandalam MS',
+  'IFFCO Tokio',
+  'Royal Sundaram',
+  'Kotak Mahindra',
+  'Liberty General',
+  'Magma HDI',
+  'Shriram General',
+  'Universal Sompo',
+  'Acko',
+  'Digit Insurance',
   'Other'
 ];
 
