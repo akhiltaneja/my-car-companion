@@ -1,6 +1,6 @@
-import { Plus, Menu, BarChart3, Settings, Home } from 'lucide-react';
+import { Plus, Menu, Settings, Home } from 'lucide-react';
 
-type Tab = 'dashboard' | 'add' | 'history' | 'insights' | 'settings';
+type Tab = 'home' | 'add' | 'history' | 'settings';
 
 interface BottomNavProps {
   activeTab: Tab;
@@ -8,10 +8,9 @@ interface BottomNavProps {
 }
 
 const tabs = [
-  { id: 'dashboard' as Tab, icon: Home, label: 'Home', color: 'bg-mint' },
+  { id: 'home' as Tab, icon: Home, label: 'Home', color: 'bg-mint' },
   { id: 'history' as Tab, icon: Menu, label: 'History', color: 'bg-orange' },
   { id: 'add' as Tab, icon: Plus, label: 'Add', color: 'bg-primary', isCenter: true },
-  { id: 'insights' as Tab, icon: BarChart3, label: 'Insights', color: 'bg-lavender' },
   { id: 'settings' as Tab, icon: Settings, label: 'Settings', color: 'bg-pink' },
 ];
 

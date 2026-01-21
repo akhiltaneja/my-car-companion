@@ -1,51 +1,60 @@
 import { useState } from 'react';
-import { Camera, User, Car, CalendarDays, Mail, LogOut, Loader2 } from 'lucide-react';
-import { UserProfile, CAR_BRANDS } from '@/types';
+import { Camera, User, Car, Mail, LogOut, Loader2, Plus, Trash2, Star, Fuel } from 'lucide-react';
+import { UserProfile, Vehicle, FUEL_TYPES } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import { AddVehicleForm } from './AddVehicleForm';
 
 interface SettingsProps {
   profile: UserProfile | null;
   expenseCount: number;
+  vehicles: Vehicle[];
   onUpdateProfile: (profile: Partial<UserProfile>) => void;
+  onAddVehicle: (vehicle: Omit<Vehicle, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<{ error: Error | null }>;
+  onDeleteVehicle: (id: string) => Promise<{ error: Error | null }>;
+  onSetDefaultVehicle: (id: string) => Promise<{ error: Error | null }>;
 }
 
 const months = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
 ];
 
-const currentYear = new Date().getFullYear();
-const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
-
-export function Settings({ profile, expenseCount, onUpdateProfile }: SettingsProps) {
+export function Settings({ 
+  profile, 
+  expenseCount, 
+  vehicles,
+  onUpdateProfile, 
+  onAddVehicle,
+  onDeleteVehicle,
+  onSetDefaultVehicle,
+}: SettingsProps) {
   const { signOut } = useAuth();
   const [name, setName] = useState(profile?.name || '');
-  const [carBrand, setCarBrand] = useState(profile?.car_brand || '');
-  const [carName, setCarName] = useState(profile?.car_name || '');
-  const [purchaseMonth, setPurchaseMonth] = useState(profile?.purchase_month || new Date().getMonth() + 1);
-  const [purchaseYear, setPurchaseYear] = useState(profile?.purchase_year || new Date().getFullYear());
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showAddVehicle, setShowAddVehicle] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await signOut();
   };
 
-  const handleSave = () => {
-    onUpdateProfile({
-      name,
-      car_brand: carBrand,
-      car_name: carName,
-      purchase_month: purchaseMonth,
-      purchase_year: purchaseYear,
-    });
+  const handleSaveName = () => {
+    onUpdateProfile({ name });
+  };
+
+  const handleSetDefault = async (id: string) => {
+    await onSetDefaultVehicle(id);
+  };
+
+  const getFuelLabel = (fuelType: string) => {
+    return FUEL_TYPES.find(f => f.value === fuelType)?.label || fuelType;
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-orange/30 to-background pb-24">
       <div className="pt-10 pb-6 px-5">
         <h1 className="text-3xl font-black text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your profile</p>
+        <p className="text-sm text-muted-foreground mt-1">Manage your profile & vehicles</p>
       </div>
 
       <div className="px-4 space-y-4">
@@ -81,7 +90,7 @@ export function Settings({ profile, expenseCount, onUpdateProfile }: SettingsPro
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                onBlur={handleSave}
+                onBlur={handleSaveName}
                 placeholder="Enter your name"
                 className="input-brutal text-sm h-12"
               />
@@ -101,76 +110,103 @@ export function Settings({ profile, expenseCount, onUpdateProfile }: SettingsPro
           </div>
         </div>
 
-        {/* Vehicle Info */}
+        {/* Vehicles Section */}
         <div className="bg-card rounded-2xl p-5 shadow-sm border-2 border-border">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-mint rounded-lg flex items-center justify-center">
-              <Car className="w-4 h-4 text-foreground" />
-            </div>
-            <h3 className="font-bold text-foreground">Vehicle Info</h3>
-          </div>
-          
-          <div className="space-y-4">
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Car Brand</label>
-              <select
-                value={carBrand}
-                onChange={(e) => {
-                  setCarBrand(e.target.value);
-                  onUpdateProfile({ car_brand: e.target.value });
-                }}
-                className="input-brutal text-sm h-12"
-              >
-                <option value="">Select brand</option>
-                {CAR_BRANDS.map(brand => (
-                  <option key={brand} value={brand}>{brand}</option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Car Model</label>
-              <input
-                type="text"
-                value={carName}
-                onChange={(e) => setCarName(e.target.value)}
-                onBlur={handleSave}
-                placeholder="e.g., Swift Dzire"
-                className="input-brutal text-sm h-12"
-              />
-            </div>
-
-            {/* Purchase Date moved under Vehicle Info */}
-            <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1.5">Purchase Date</label>
-              <div className="grid grid-cols-2 gap-3">
-                <select
-                  value={purchaseMonth}
-                  onChange={(e) => {
-                    setPurchaseMonth(parseInt(e.target.value));
-                    onUpdateProfile({ purchase_month: parseInt(e.target.value) });
-                  }}
-                  className="input-brutal text-sm h-12"
-                >
-                  {months.map((month, i) => (
-                    <option key={month} value={i + 1}>{month}</option>
-                  ))}
-                </select>
-                <select
-                  value={purchaseYear}
-                  onChange={(e) => {
-                    setPurchaseYear(parseInt(e.target.value));
-                    onUpdateProfile({ purchase_year: parseInt(e.target.value) });
-                  }}
-                  className="input-brutal text-sm h-12"
-                >
-                  {years.map(year => (
-                    <option key={year} value={year}>{year}</option>
-                  ))}
-                </select>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-mint rounded-lg flex items-center justify-center">
+                <Car className="w-4 h-4 text-foreground" />
               </div>
+              <h3 className="font-bold text-foreground">My Vehicles</h3>
             </div>
+            <button
+              onClick={() => setShowAddVehicle(true)}
+              className="flex items-center gap-1 px-3 py-1.5 bg-mint rounded-xl border-2 border-foreground text-xs font-bold shadow-brutal-sm hover:scale-105 transition-transform"
+            >
+              <Plus className="w-4 h-4" />
+              Add
+            </button>
           </div>
+
+          {vehicles.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="w-16 h-16 mx-auto mb-3 bg-muted rounded-full flex items-center justify-center">
+                <Car className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <p className="text-sm font-medium text-muted-foreground">No vehicles added yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Add your first vehicle to start tracking</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {vehicles.map((vehicle) => (
+                <div 
+                  key={vehicle.id}
+                  className={`relative rounded-xl border-2 p-4 ${
+                    vehicle.is_default 
+                      ? 'border-mint bg-gradient-to-br from-mint/30 to-emerald-50' 
+                      : 'border-border bg-muted/50'
+                  }`}
+                >
+                  {vehicle.is_default && (
+                    <div className="absolute -top-2 -right-2 bg-mint rounded-full p-1 border-2 border-foreground">
+                      <Star className="w-3 h-3 fill-current" />
+                    </div>
+                  )}
+                  
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="font-black text-foreground">
+                        {vehicle.manufacturer} {vehicle.model}
+                      </h4>
+                      {vehicle.variant && (
+                        <p className="text-xs text-muted-foreground">{vehicle.variant}</p>
+                      )}
+                      <div className="flex items-center gap-2 mt-2 flex-wrap">
+                        <span className="inline-flex items-center gap-1 text-xs bg-card px-2 py-1 rounded-lg border">
+                          <Fuel className="w-3 h-3" />
+                          {getFuelLabel(vehicle.fuel_type)}
+                        </span>
+                        {vehicle.cubic_capacity && (
+                          <span className="text-xs bg-card px-2 py-1 rounded-lg border">
+                            {vehicle.cubic_capacity}cc
+                          </span>
+                        )}
+                        {vehicle.purchase_year && (
+                          <span className="text-xs bg-card px-2 py-1 rounded-lg border">
+                            {months[((vehicle.purchase_month || 1) - 1)]} {vehicle.purchase_year}
+                          </span>
+                        )}
+                      </div>
+                      {Number(vehicle.on_road_price) > 0 && (
+                        <p className="text-xs text-muted-foreground mt-2">
+                          On-road: ₹{(Number(vehicle.on_road_price) / 100000).toFixed(2)}L
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div className="flex flex-col gap-1">
+                      {!vehicle.is_default && (
+                        <button
+                          onClick={() => handleSetDefault(vehicle.id)}
+                          className="p-2 text-muted-foreground hover:text-mint hover:bg-mint/20 rounded-lg transition-colors"
+                          title="Set as default"
+                        >
+                          <Star className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button
+                        onClick={() => onDeleteVehicle(vehicle.id)}
+                        className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
+                        title="Delete vehicle"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Stats */}
@@ -196,6 +232,14 @@ export function Settings({ profile, expenseCount, onUpdateProfile }: SettingsPro
           )}
         </button>
       </div>
+
+      {/* Add Vehicle Modal */}
+      {showAddVehicle && (
+        <AddVehicleForm
+          onAdd={onAddVehicle}
+          onClose={() => setShowAddVehicle(false)}
+        />
+      )}
     </div>
   );
 }
