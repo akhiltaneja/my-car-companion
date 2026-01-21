@@ -1,12 +1,18 @@
 import { useState, useMemo } from 'react';
 import { Fuel, Shield, Wrench, Car, AlertTriangle, CheckCircle2, MapPin, Building2 } from 'lucide-react';
-import { ExpenseType, EXPENSE_LABELS, INSURANCE_PROVIDERS } from '@/types';
+import { ExpenseType, EXPENSE_LABELS, INSURANCE_PROVIDERS, PETROL_PUMPS, Vehicle, PetrolPump } from '@/types';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
+import { CategoryHistory } from './CategoryHistory';
+import { Expense } from '@/types';
 
 interface AddExpenseProps {
   lastOdometer: number;
   onAdd: (expense: any) => Promise<{ error: Error | null }>;
+  expenses: Expense[];
+  vehicles: Vehicle[];
+  selectedVehicle: Vehicle | null;
+  onSelectVehicle: (vehicle: Vehicle) => void;
 }
 
 const expenseTypes = [
@@ -17,7 +23,7 @@ const expenseTypes = [
   { type: 'challan' as ExpenseType, icon: AlertTriangle, label: 'Challan', color: 'bg-challan' },
 ];
 
-export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
+export function AddExpense({ lastOdometer, onAdd, expenses, vehicles, selectedVehicle, onSelectVehicle }: AddExpenseProps) {
   const { toast } = useToast();
   const [activeType, setActiveType] = useState<ExpenseType>('fuel');
   const [date, setDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -30,6 +36,7 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
   const [providerName, setProviderName] = useState('');
   const [startDate, setStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [location, setLocation] = useState('');
+  const [petrolPump, setPetrolPump] = useState<PetrolPump | ''>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const totalCost = useMemo(() => {
@@ -51,11 +58,22 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
     setProviderName('');
     setStartDate(format(new Date(), 'yyyy-MM-dd'));
     setLocation('');
+    setPetrolPump('');
     setDate(format(new Date(), 'yyyy-MM-dd'));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!selectedVehicle) {
+      toast({
+        title: "No vehicle selected",
+        description: "Please add a vehicle first in Settings.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
     
     const baseExpense = {
@@ -63,6 +81,7 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
       date,
       odometer: parseInt(odometer) || lastOdometer,
       notes: notes || undefined,
+      vehicle_id: selectedVehicle.id,
     };
 
     let expense: any = baseExpense;
@@ -73,6 +92,7 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
         price_per_liter: parseFloat(pricePerLiter) || 0,
         liters: parseFloat(liters) || 0,
         total_cost: totalCost,
+        petrol_pump: petrolPump || undefined,
       };
     } else if (activeType === 'insurance') {
       expense = {
@@ -123,6 +143,33 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
       </div>
 
       <div className="px-4">
+        {/* Vehicle Selector */}
+        {vehicles.length > 0 && (
+          <div className="mb-4">
+            <label className="block text-xs font-bold mb-1.5 text-muted-foreground">For Vehicle</label>
+            <select
+              value={selectedVehicle?.id || ''}
+              onChange={(e) => {
+                const vehicle = vehicles.find(v => v.id === e.target.value);
+                if (vehicle) onSelectVehicle(vehicle);
+              }}
+              className="input-brutal text-sm h-12"
+            >
+              {vehicles.map(vehicle => (
+                <option key={vehicle.id} value={vehicle.id}>
+                  {vehicle.manufacturer} {vehicle.model} {vehicle.variant || ''}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {vehicles.length === 0 && (
+          <div className="mb-4 p-4 bg-yellow/30 rounded-xl border-2 border-yellow">
+            <p className="text-sm font-medium text-foreground">Please add a vehicle first in Settings to track expenses.</p>
+          </div>
+        )}
+
         {/* Expense Type Selector - Grid Layout */}
         <div className="grid grid-cols-5 gap-2 mb-5">
           {expenseTypes.map(({ type, icon: Icon, label, color }) => (
@@ -181,6 +228,21 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
 
             {activeType === 'fuel' && (
               <>
+                {/* Petrol Pump Selector */}
+                <div>
+                  <label className="block text-xs font-bold mb-1.5 text-muted-foreground">Petrol Pump</label>
+                  <select
+                    value={petrolPump}
+                    onChange={(e) => setPetrolPump(e.target.value as PetrolPump)}
+                    className="input-brutal text-sm h-12"
+                  >
+                    <option value="">Select pump</option>
+                    {PETROL_PUMPS.map(pump => (
+                      <option key={pump.value} value={pump.value}>{pump.label}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Price & Liters Row */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
@@ -339,13 +401,18 @@ export function AddExpense({ lastOdometer, onAdd }: AddExpenseProps) {
             <button 
               type="submit" 
               className="btn-primary mt-4 flex items-center justify-center gap-2"
-              disabled={isSubmitting}
+              disabled={isSubmitting || vehicles.length === 0}
             >
               <CheckCircle2 className="w-5 h-5" />
               {isSubmitting ? 'Saving...' : 'Save Entry'}
             </button>
           </div>
         </form>
+
+        {/* Category History */}
+        <div className="mt-4">
+          <CategoryHistory expenses={expenses} type={activeType} />
+        </div>
       </div>
     </div>
   );

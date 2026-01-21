@@ -2,22 +2,32 @@ import { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useProfile } from '@/hooks/useProfile';
+import { useVehicles } from '@/hooks/useVehicles';
 import { BottomNav } from '@/components/BottomNav';
-import { Dashboard } from '@/components/Dashboard';
+import { Home } from '@/components/Home';
 import { AddExpense } from '@/components/AddExpense';
 import { History } from '@/components/History';
-import { Insights } from '@/components/Insights';
 import { Settings } from '@/components/Settings';
 import { Navigate } from 'react-router-dom';
 import { Loader2 } from 'lucide-react';
 
-type Tab = 'dashboard' | 'add' | 'history' | 'insights' | 'settings';
+type Tab = 'home' | 'add' | 'history' | 'settings';
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState<Tab>('dashboard');
+  const [activeTab, setActiveTab] = useState<Tab>('home');
+  const [viewMode, setViewMode] = useState<'individual' | 'combined'>('individual');
   const { expenses, loading: expensesLoading, addExpense, deleteExpense, getLastOdometer } = useExpenses();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
+  const { 
+    vehicles, 
+    loading: vehiclesLoading, 
+    selectedVehicle, 
+    addVehicle, 
+    deleteVehicle, 
+    updateVehicle,
+    selectVehicle 
+  } = useVehicles();
 
   if (authLoading) {
     return (
@@ -31,7 +41,7 @@ const Index = () => {
     return <Navigate to="/auth" replace />;
   }
 
-  const isLoading = expensesLoading || profileLoading;
+  const isLoading = expensesLoading || profileLoading || vehiclesLoading;
 
   if (isLoading) {
     return (
@@ -48,25 +58,44 @@ const Index = () => {
     setActiveTab(tab);
   };
 
+  const handleSetDefaultVehicle = async (id: string) => {
+    return updateVehicle(id, { is_default: true });
+  };
+
   return (
     <div className="max-w-lg mx-auto">
-      {activeTab === 'dashboard' && (
-        <Dashboard expenses={expenses} profile={profile} />
+      {activeTab === 'home' && (
+        <Home 
+          expenses={expenses} 
+          profile={profile} 
+          vehicles={vehicles}
+          selectedVehicle={selectedVehicle}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+        />
       )}
       {activeTab === 'add' && (
-        <AddExpense lastOdometer={getLastOdometer()} onAdd={addExpense} />
+        <AddExpense 
+          lastOdometer={getLastOdometer(selectedVehicle?.id)} 
+          onAdd={addExpense}
+          expenses={expenses}
+          vehicles={vehicles}
+          selectedVehicle={selectedVehicle}
+          onSelectVehicle={selectVehicle}
+        />
       )}
       {activeTab === 'history' && (
         <History expenses={expenses} onDelete={(id) => deleteExpense(id)} />
-      )}
-      {activeTab === 'insights' && (
-        <Insights expenses={expenses} />
       )}
       {activeTab === 'settings' && (
         <Settings
           profile={profile}
           expenseCount={expenses.length}
+          vehicles={vehicles}
           onUpdateProfile={updateProfile}
+          onAddVehicle={addVehicle}
+          onDeleteVehicle={deleteVehicle}
+          onSetDefaultVehicle={handleSetDefaultVehicle}
         />
       )}
       

@@ -1,5 +1,9 @@
 export type ExpenseType = 'fuel' | 'insurance' | 'service' | 'toll' | 'challan';
 
+export type FuelType = 'petrol' | 'diesel' | 'cng' | 'electric' | 'hybrid';
+
+export type PetrolPump = 'indian_oil' | 'hp' | 'bharat_petroleum' | 'reliance' | 'shell' | 'other';
+
 export interface BaseExpense {
   id: string;
   user_id: string;
@@ -9,12 +13,14 @@ export interface BaseExpense {
   total_cost: number;
   notes?: string;
   created_at: string;
+  vehicle_id?: string;
 }
 
 export interface FuelExpense extends BaseExpense {
   type: 'fuel';
   price_per_liter: number;
   liters: number;
+  petrol_pump?: PetrolPump;
 }
 
 export interface InsuranceExpense extends BaseExpense {
@@ -39,6 +45,25 @@ export interface ChallanExpense extends BaseExpense {
 }
 
 export type Expense = FuelExpense | InsuranceExpense | TollExpense | ServiceExpense | ChallanExpense;
+
+export interface Vehicle {
+  id: string;
+  user_id: string;
+  manufacturer: string;
+  model: string;
+  variant?: string;
+  fuel_type: FuelType;
+  engine_number?: string;
+  chassis_number?: string;
+  cubic_capacity?: number;
+  number_of_cylinders?: number;
+  purchase_month?: number;
+  purchase_year?: number;
+  on_road_price: number;
+  is_default: boolean;
+  created_at: string;
+  updated_at: string;
+}
 
 export interface UserProfile {
   id: string;
@@ -104,6 +129,23 @@ export const INSURANCE_PROVIDERS = [
   'Acko',
   'Digit Insurance',
   'Other'
+];
+
+export const PETROL_PUMPS: { value: PetrolPump; label: string }[] = [
+  { value: 'indian_oil', label: 'Indian Oil' },
+  { value: 'hp', label: 'HP' },
+  { value: 'bharat_petroleum', label: 'Bharat Petroleum' },
+  { value: 'reliance', label: 'Reliance Petroleum' },
+  { value: 'shell', label: 'Shell' },
+  { value: 'other', label: 'Other' },
+];
+
+export const FUEL_TYPES: { value: FuelType; label: string }[] = [
+  { value: 'petrol', label: 'Petrol' },
+  { value: 'diesel', label: 'Diesel' },
+  { value: 'cng', label: 'CNG' },
+  { value: 'electric', label: 'Electric' },
+  { value: 'hybrid', label: 'Hybrid' },
 ];
 
 export const EXPENSE_COLORS: Record<ExpenseType, string> = {

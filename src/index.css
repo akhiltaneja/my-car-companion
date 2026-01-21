@@ -167,4 +167,13 @@
   .bg-service { background-color: hsl(var(--service-bg)); }
   .bg-toll { background-color: hsl(var(--toll-bg)); }
   .bg-challan { background-color: hsl(var(--challan-bg)); }
+  
+  @keyframes slide-up {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  
+  .animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+  }
 }

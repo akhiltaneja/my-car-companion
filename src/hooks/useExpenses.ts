@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { Expense, ExpenseType } from '@/types';
+import { Expense, ExpenseType, PetrolPump } from '@/types';
 
 export function useExpenses() {
   const { user } = useAuth();
@@ -43,8 +43,10 @@ export function useExpenses() {
       odometer: expense.odometer,
       total_cost: expense.total_cost,
       notes: expense.notes || null,
+      vehicle_id: expense.vehicle_id || null,
       price_per_liter: expense.type === 'fuel' ? (expense as any).price_per_liter : null,
       liters: expense.type === 'fuel' ? (expense as any).liters : null,
+      petrol_pump: expense.type === 'fuel' ? ((expense as any).petrol_pump as PetrolPump) || null : null,
       provider_name: expense.type === 'insurance' ? (expense as any).provider_name : null,
       start_date: expense.type === 'insurance' ? (expense as any).start_date : null,
       location: expense.type === 'toll' ? (expense as any).location : null,
@@ -67,9 +69,12 @@ export function useExpenses() {
     return { error };
   };
 
-  const getLastOdometer = useCallback(() => {
-    if (expenses.length === 0) return 0;
-    return expenses[0].odometer;
+  const getLastOdometer = useCallback((vehicleId?: string) => {
+    const vehicleExpenses = vehicleId 
+      ? expenses.filter(e => e.vehicle_id === vehicleId)
+      : expenses;
+    if (vehicleExpenses.length === 0) return 0;
+    return vehicleExpenses[0].odometer;
   }, [expenses]);
 
   return {

@@ -24,12 +24,14 @@ export type Database = {
           location: string | null
           notes: string | null
           odometer: number
+          petrol_pump: Database["public"]["Enums"]["petrol_pump"] | null
           price_per_liter: number | null
           provider_name: string | null
           start_date: string | null
           total_cost: number
           type: Database["public"]["Enums"]["expense_type"]
           user_id: string
+          vehicle_id: string | null
         }
         Insert: {
           created_at?: string | null
@@ -40,12 +42,14 @@ export type Database = {
           location?: string | null
           notes?: string | null
           odometer: number
+          petrol_pump?: Database["public"]["Enums"]["petrol_pump"] | null
           price_per_liter?: number | null
           provider_name?: string | null
           start_date?: string | null
           total_cost: number
           type: Database["public"]["Enums"]["expense_type"]
           user_id: string
+          vehicle_id?: string | null
         }
         Update: {
           created_at?: string | null
@@ -56,14 +60,24 @@ export type Database = {
           location?: string | null
           notes?: string | null
           odometer?: number
+          petrol_pump?: Database["public"]["Enums"]["petrol_pump"] | null
           price_per_liter?: number | null
           provider_name?: string | null
           start_date?: string | null
           total_cost?: number
           type?: Database["public"]["Enums"]["expense_type"]
           user_id?: string
+          vehicle_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_vehicle_id_fkey"
+            columns: ["vehicle_id"]
+            isOneToOne: false
+            referencedRelation: "vehicles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -104,6 +118,63 @@ export type Database = {
         }
         Relationships: []
       }
+      vehicles: {
+        Row: {
+          chassis_number: string | null
+          created_at: string
+          cubic_capacity: number | null
+          engine_number: string | null
+          fuel_type: Database["public"]["Enums"]["fuel_type"]
+          id: string
+          is_default: boolean | null
+          manufacturer: string
+          model: string
+          number_of_cylinders: number | null
+          on_road_price: number
+          purchase_month: number | null
+          purchase_year: number | null
+          updated_at: string
+          user_id: string
+          variant: string | null
+        }
+        Insert: {
+          chassis_number?: string | null
+          created_at?: string
+          cubic_capacity?: number | null
+          engine_number?: string | null
+          fuel_type?: Database["public"]["Enums"]["fuel_type"]
+          id?: string
+          is_default?: boolean | null
+          manufacturer: string
+          model: string
+          number_of_cylinders?: number | null
+          on_road_price?: number
+          purchase_month?: number | null
+          purchase_year?: number | null
+          updated_at?: string
+          user_id: string
+          variant?: string | null
+        }
+        Update: {
+          chassis_number?: string | null
+          created_at?: string
+          cubic_capacity?: number | null
+          engine_number?: string | null
+          fuel_type?: Database["public"]["Enums"]["fuel_type"]
+          id?: string
+          is_default?: boolean | null
+          manufacturer?: string
+          model?: string
+          number_of_cylinders?: number | null
+          on_road_price?: number
+          purchase_month?: number | null
+          purchase_year?: number | null
+          updated_at?: string
+          user_id?: string
+          variant?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -113,6 +184,14 @@ export type Database = {
     }
     Enums: {
       expense_type: "fuel" | "insurance" | "service" | "toll" | "challan"
+      fuel_type: "petrol" | "diesel" | "cng" | "electric" | "hybrid"
+      petrol_pump:
+        | "indian_oil"
+        | "hp"
+        | "bharat_petroleum"
+        | "reliance"
+        | "shell"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -241,6 +320,15 @@ export const Constants = {
   public: {
     Enums: {
       expense_type: ["fuel", "insurance", "service", "toll", "challan"],
+      fuel_type: ["petrol", "diesel", "cng", "electric", "hybrid"],
+      petrol_pump: [
+        "indian_oil",
+        "hp",
+        "bharat_petroleum",
+        "reliance",
+        "shell",
+        "other",
+      ],
     },
   },
 } as const
