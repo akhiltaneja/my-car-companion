@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import { format } from 'date-fns';
-import { Fuel, Shield, Wrench, Car, AlertTriangle, X } from 'lucide-react';
+import { Fuel, Shield, Wrench, Car, AlertTriangle, X, Pencil } from 'lucide-react';
 import { Expense, ExpenseType, EXPENSE_LABELS, FuelExpense, InsuranceExpense, TollExpense } from '@/types';
+import { EditExpenseModal } from './EditExpenseModal';
+import { useToast } from '@/hooks/use-toast';
 
 interface HistoryProps {
   expenses: Expense[];
   onDelete: (id: string) => void;
+  onUpdate: (id: string, updates: Partial<Expense>) => Promise<{ error: Error | null }>;
 }
 
 const typeIcons: Record<ExpenseType, React.ComponentType<{ className?: string }>> = {
@@ -31,7 +35,28 @@ const typeAccentColors: Record<ExpenseType, string> = {
   challan: 'bg-rose-500',
 };
 
-export function History({ expenses, onDelete }: HistoryProps) {
+export function History({ expenses, onDelete, onUpdate }: HistoryProps) {
+  const { toast } = useToast();
+  const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
+
+  const handleSave = async (id: string, updates: Partial<Expense>) => {
+    const result = await onUpdate(id, updates);
+    if (result.error) {
+      toast({
+        title: "Error",
+        description: result.error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Updated!",
+        description: "Expense updated successfully.",
+        duration: 3000,
+      });
+    }
+    return result;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-mint/30 to-background pb-24">
       <div className="pt-10 pb-6 px-5">
@@ -75,12 +100,20 @@ export function History({ expenses, onDelete }: HistoryProps) {
                         <p className="text-xs text-muted-foreground">{format(new Date(expense.date), 'd MMM yyyy')}</p>
                       </div>
                     </div>
-                    <button
-                      onClick={() => onDelete(expense.id)}
-                      className="p-2 rounded-full hover:bg-white/50 transition-colors text-muted-foreground hover:text-rose-500"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => setEditingExpense(expense)}
+                        className="p-2 rounded-full hover:bg-white/50 transition-colors text-muted-foreground hover:text-blue-500"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(expense.id)}
+                        className="p-2 rounded-full hover:bg-white/50 transition-colors text-muted-foreground hover:text-rose-500"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="flex items-end justify-between">
@@ -97,8 +130,8 @@ export function History({ expenses, onDelete }: HistoryProps) {
                       {isToll && (expense as TollExpense).location && (
                         <p><span className="text-muted-foreground">Location:</span> {(expense as TollExpense).location}</p>
                       )}
-                      {!isFuel && !isInsurance && !isToll && 'description' in expense && expense.description && (
-                        <p><span className="text-muted-foreground">Note:</span> {expense.description}</p>
+                      {!isFuel && !isInsurance && !isToll && 'description' in expense && (expense as any).description && (
+                        <p><span className="text-muted-foreground">Note:</span> {(expense as any).description}</p>
                       )}
                     </div>
                     <div className="text-right">
@@ -117,6 +150,15 @@ export function History({ expenses, onDelete }: HistoryProps) {
           })
         )}
       </div>
+
+      {/* Edit Modal */}
+      {editingExpense && (
+        <EditExpenseModal
+          expense={editingExpense}
+          onSave={handleSave}
+          onClose={() => setEditingExpense(null)}
+        />
+      )}
     </div>
   );
 }
