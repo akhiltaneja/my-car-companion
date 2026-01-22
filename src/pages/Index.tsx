@@ -17,7 +17,7 @@ const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [viewMode, setViewMode] = useState<'individual' | 'combined'>('individual');
-  const { expenses, loading: expensesLoading, addExpense, deleteExpense, getLastOdometer } = useExpenses();
+  const { expenses, loading: expensesLoading, addExpense, deleteExpense, updateExpense, getLastOdometer } = useExpenses();
   const { profile, loading: profileLoading, updateProfile } = useProfile();
   const { 
     vehicles, 
@@ -85,7 +85,7 @@ const Index = () => {
         />
       )}
       {activeTab === 'history' && (
-        <History expenses={expenses} onDelete={(id) => deleteExpense(id)} />
+        <History expenses={expenses} onDelete={(id) => deleteExpense(id)} onUpdate={updateExpense} />
       )}
       {activeTab === 'settings' && (
         <Settings
