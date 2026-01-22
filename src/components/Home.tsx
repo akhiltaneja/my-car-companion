@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar } from 'recharts';
+import { XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, LineChart, Line, CartesianGrid } from 'recharts';
 import { Expense, FuelExpense, UserProfile, EXPENSE_LABELS, Vehicle } from '@/types';
 import { format } from 'date-fns';
-import { TrendingUp, Fuel, Calendar, ChevronDown, ChevronUp, Zap, Droplet, Car, IndianRupee } from 'lucide-react';
+import { TrendingUp, Fuel, Calendar, ChevronDown, ChevronUp, Zap, Droplet, Car, IndianRupee, Activity } from 'lucide-react';
 
 interface HomeProps {
   expenses: Expense[];
@@ -71,6 +71,9 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
       ? fuelEntries.reduce((sum, e) => sum + Number(e.price_per_liter), 0) / fuelEntries.length
       : 0;
 
+    // Total fuel cost
+    const totalFuelCost = fuelEntries.reduce((sum, e) => sum + Number(e.total_cost), 0);
+
     // Current year stats
     const currentYear = new Date().getFullYear();
     const thisYearExpenses = allExpenses.filter(e => new Date(e.date).getFullYear() === currentYear);
@@ -89,6 +92,17 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
     });
     const monthlyChartData = Object.values(monthlyData).sort((a, b) => a.monthKey.localeCompare(b.monthKey));
 
+    // Create timeline data for line chart (individual expenses over time)
+    const timelineData = [...allExpenses]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .map(e => ({
+        date: format(new Date(e.date), 'dd MMM'),
+        fullDate: format(new Date(e.date), 'dd MMM yyyy'),
+        amount: Number(e.total_cost),
+        type: e.type,
+        label: EXPENSE_LABELS[e.type],
+      }));
+
     return {
       totalSpent,
       totalFuel,
@@ -102,6 +116,8 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
       thisYearSpent,
       vehiclePrice,
       totalOwnershipCost,
+      totalFuelCost,
+      timelineData,
     };
   }, [filteredExpenses, selectedVehicle, vehicles, viewMode]);
 
@@ -195,18 +211,98 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
           </div>
         </div>
 
+        {/* Cost Summary Cards */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Total Fuel Cost Card */}
+          <div className="bg-gradient-to-br from-mint/60 to-emerald-100 rounded-2xl p-4 border-2 border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-mint rounded-lg flex items-center justify-center">
+                <Fuel className="w-4 h-4 text-foreground" />
+              </div>
+            </div>
+            <p className="text-2xl font-black text-foreground">₹{stats.totalFuelCost.toLocaleString('en-IN')}</p>
+            <p className="text-xs font-medium text-muted-foreground">Total Fuel Cost</p>
+          </div>
+
+          {/* Vehicle Price Card */}
+          <div className="bg-gradient-to-br from-lavender/60 to-purple-100 rounded-2xl p-4 border-2 border-border">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-8 h-8 bg-lavender rounded-lg flex items-center justify-center">
+                <Car className="w-4 h-4 text-foreground" />
+              </div>
+            </div>
+            <p className="text-2xl font-black text-foreground">₹{(stats.vehiclePrice / 100000).toFixed(1)}L</p>
+            <p className="text-xs font-medium text-muted-foreground">Vehicle Cost</p>
+          </div>
+        </div>
+
         {/* Total Spent Card */}
         <div className="bg-gradient-to-br from-orange/60 to-amber-100 rounded-2xl p-5 border-2 border-border">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs font-bold text-muted-foreground mb-1">Total Spent (All Time)</p>
-              <p className="text-3xl font-black text-foreground">₹{stats.totalSpent.toLocaleString('en-IN')}</p>
+              <p className="text-xs font-bold text-muted-foreground mb-1">Total Ownership Cost</p>
+              <p className="text-3xl font-black text-foreground">₹{stats.totalOwnershipCost.toLocaleString('en-IN')}</p>
+              <p className="text-xs text-muted-foreground mt-1">Vehicle + All Expenses</p>
             </div>
             <div className="w-12 h-12 bg-orange rounded-xl flex items-center justify-center">
               <Zap className="w-6 h-6 text-foreground" />
             </div>
           </div>
         </div>
+
+        {/* Expense Timeline Line Chart */}
+        {stats.timelineData.length > 1 && (
+          <div className="bg-card rounded-2xl p-5 shadow-sm border-2 border-border">
+            <h3 className="font-bold text-foreground mb-4 flex items-center gap-2">
+              <Activity className="w-4 h-4 text-pink" />
+              Expense Timeline
+            </h3>
+            <div className="h-44">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={stats.timelineData.slice(-20)}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.5} />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fontSize: 9, fill: 'currentColor' }} 
+                    axisLine={false}
+                    tickLine={false}
+                    interval="preserveStartEnd"
+                  />
+                  <YAxis 
+                    tick={{ fontSize: 10, fill: 'currentColor' }} 
+                    tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`}
+                    width={40}
+                    axisLine={false}
+                    tickLine={false}
+                  />
+                  <Tooltip 
+                    formatter={(value: number, name: string, props: any) => [
+                      `₹${value.toLocaleString('en-IN')}`, 
+                      props.payload?.label || 'Expense'
+                    ]}
+                    labelFormatter={(label, payload) => payload?.[0]?.payload?.fullDate || label}
+                    contentStyle={{ 
+                      background: 'hsl(var(--card))', 
+                      border: '2px solid hsl(var(--border))',
+                      borderRadius: '12px',
+                      boxShadow: '4px 4px 0 hsl(var(--foreground))',
+                      fontWeight: 600,
+                      fontSize: '12px'
+                    }}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="amount" 
+                    stroke="hsl(var(--pink))"
+                    strokeWidth={3}
+                    dot={{ fill: 'hsl(var(--pink))', strokeWidth: 2, r: 5, stroke: 'hsl(var(--card))' }}
+                    activeDot={{ r: 7, fill: 'hsl(var(--orange))', stroke: 'hsl(var(--foreground))', strokeWidth: 2 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
 
         {/* Monthly Expense Chart */}
         {stats.monthlyChartData.length > 0 && (

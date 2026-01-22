@@ -17,6 +17,8 @@
     --pink-dark: 340 60% 50%;
     --yellow: 45 95% 70%;
     --yellow-dark: 45 80% 45%;
+    --sky: 200 80% 70%;
+    --sky-dark: 200 70% 50%;
     
     /* Stat card colors */
     --stat-yellow: 48 100% 88%;
@@ -155,6 +157,7 @@
   .bg-lavender { background-color: hsl(var(--lavender)); }
   .bg-pink { background-color: hsl(var(--pink)); }
   .bg-yellow { background-color: hsl(var(--yellow)); }
+  .bg-sky { background-color: hsl(var(--sky)); }
   
   .bg-stat-yellow { background-color: hsl(var(--stat-yellow)); }
   .bg-stat-mint { background-color: hsl(var(--stat-mint)); }
