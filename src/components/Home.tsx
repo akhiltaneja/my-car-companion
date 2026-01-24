@@ -46,9 +46,10 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
     }
     const avgEfficiency = totalKm > 0 && totalFuel > 0 ? totalKm / totalFuel : 0;
 
-    const maxOdometer = Math.max(...allExpenses.map(e => e.odometer), 0);
-    const minOdometer = Math.min(...allExpenses.map(e => e.odometer), 0);
-    const odometerRange = maxOdometer - minOdometer;
+    // Use max odometer reading as total distance traveled
+    const maxOdometer = allExpenses.length > 0 
+      ? Math.max(...allExpenses.map(e => e.odometer)) 
+      : 0;
 
     // Calculate total ownership cost including vehicle price
     const vehiclePrice = viewMode === 'individual' && selectedVehicle 
@@ -56,7 +57,7 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
       : vehicles.reduce((sum, v) => sum + Number(v.on_road_price), 0);
     
     const totalOwnershipCost = totalSpent + vehiclePrice;
-    const costPerKm = odometerRange > 0 ? totalOwnershipCost / odometerRange : 0;
+    const costPerKm = maxOdometer > 0 ? totalOwnershipCost / maxOdometer : 0;
 
     const now = new Date();
     const thisMonth = allExpenses.filter(e => {
@@ -112,7 +113,7 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
       thisMonthLiters,
       avgPrice,
       monthlyChartData,
-      odometerRange,
+      maxOdometer,
       thisYearSpent,
       vehiclePrice,
       totalOwnershipCost,
@@ -174,9 +175,9 @@ export function Home({ expenses, profile, vehicles, selectedVehicle, viewMode, o
             <span className="text-5xl font-black text-foreground">₹{stats.costPerKm.toFixed(2)}</span>
             <p className="text-base font-bold text-foreground/70 mt-1">per kilometer</p>
           </div>
-          {stats.odometerRange > 0 && (
+          {stats.maxOdometer > 0 && (
             <p className="text-center text-xs text-foreground/60 mt-2">
-              Based on {stats.odometerRange.toLocaleString()} km traveled
+              Based on {stats.maxOdometer.toLocaleString()} km traveled
             </p>
           )}
           {stats.vehiclePrice > 0 && (

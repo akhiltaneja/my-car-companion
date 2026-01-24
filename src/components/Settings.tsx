@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { Camera, User, Car, Mail, LogOut, Loader2, Plus, Trash2, Star, Fuel } from 'lucide-react';
+import { Camera, User, Car, Mail, LogOut, Loader2, Plus, Trash2, Star, Fuel, Pencil } from 'lucide-react';
 import { UserProfile, Vehicle, FUEL_TYPES } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { AddVehicleForm } from './AddVehicleForm';
+import { EditVehicleForm } from './EditVehicleForm';
 
 interface SettingsProps {
   profile: UserProfile | null;
@@ -10,6 +11,7 @@ interface SettingsProps {
   vehicles: Vehicle[];
   onUpdateProfile: (profile: Partial<UserProfile>) => void;
   onAddVehicle: (vehicle: Omit<Vehicle, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => Promise<{ error: Error | null }>;
+  onUpdateVehicle: (id: string, updates: Partial<Vehicle>) => Promise<{ error: Error | null }>;
   onDeleteVehicle: (id: string) => Promise<{ error: Error | null }>;
   onSetDefaultVehicle: (id: string) => Promise<{ error: Error | null }>;
 }
@@ -25,10 +27,12 @@ export function Settings({
   vehicles,
   onUpdateProfile, 
   onAddVehicle,
+  onUpdateVehicle,
   onDeleteVehicle,
   onSetDefaultVehicle,
 }: SettingsProps) {
   const { signOut } = useAuth();
+  const [editingVehicle, setEditingVehicle] = useState<Vehicle | null>(null);
   const [name, setName] = useState(profile?.name || '');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showAddVehicle, setShowAddVehicle] = useState(false);
@@ -195,6 +199,13 @@ export function Settings({
                         </button>
                       )}
                       <button
+                        onClick={() => setEditingVehicle(vehicle)}
+                        className="p-2 text-muted-foreground hover:text-lavender hover:bg-lavender/20 rounded-lg transition-colors"
+                        title="Edit vehicle"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
                         onClick={() => onDeleteVehicle(vehicle.id)}
                         className="p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
                         title="Delete vehicle"
@@ -238,6 +249,15 @@ export function Settings({
         <AddVehicleForm
           onAdd={onAddVehicle}
           onClose={() => setShowAddVehicle(false)}
+        />
+      )}
+
+      {/* Edit Vehicle Modal */}
+      {editingVehicle && (
+        <EditVehicleForm
+          vehicle={editingVehicle}
+          onUpdate={onUpdateVehicle}
+          onClose={() => setEditingVehicle(null)}
         />
       )}
     </div>

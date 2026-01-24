@@ -94,6 +94,7 @@ const Index = () => {
           vehicles={vehicles}
           onUpdateProfile={updateProfile}
           onAddVehicle={addVehicle}
+          onUpdateVehicle={updateVehicle}
           onDeleteVehicle={deleteVehicle}
           onSetDefaultVehicle={handleSetDefaultVehicle}
         />
